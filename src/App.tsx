@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type RefObject } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider, RequireAuth, useAuth } from './lib/auth.tsx'
 import { Button } from './components/ui/Button.tsx'
+import { VinToolPanel, VIN_TOOL_PANEL_ID } from './components/vinTool/VinToolPanel.tsx'
 import { HomePage } from './pages/HomePage.tsx'
 import { CustomersPage } from './pages/CustomersPage.tsx'
 import { CustomerDetailPage } from './pages/CustomerDetailPage.tsx'
@@ -21,7 +22,13 @@ import { IntegrationsPage } from './pages/IntegrationsPage.tsx'
 import { NotFoundPage } from './pages/NotFoundPage.tsx'
 import './styles/base.css'
 
-function AppHeader() {
+interface AppHeaderProps {
+  vinToolOpen: boolean
+  onToggleVinTool: () => void
+  vinToolToggleRef: RefObject<HTMLButtonElement | null>
+}
+
+function AppHeader({ vinToolOpen, onToggleVinTool, vinToolToggleRef }: AppHeaderProps) {
   const { user, signOut } = useAuth()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -80,6 +87,16 @@ function AppHeader() {
         </nav>
         <div className="nav-bar__user">
           <span className="nav-bar__user-email">{user?.email}</span>
+          <button
+            ref={vinToolToggleRef}
+            type="button"
+            className="btn btn-outline btn-sm"
+            aria-expanded={vinToolOpen}
+            aria-controls={VIN_TOOL_PANEL_ID}
+            onClick={onToggleVinTool}
+          >
+            VIN tool
+          </button>
           <Button type="button" variant="outline" size="sm" onClick={() => void signOut()}>
             Sign out
           </Button>
@@ -92,11 +109,26 @@ function AppHeader() {
 // Route table without a Router wrapper, so tests can mount it inside a
 // MemoryRouter while the real app uses BrowserRouter (see App below).
 export function AppRoutes() {
+  const [vinToolOpen, setVinToolOpen] = useState(false)
+  const vinToolToggleRef = useRef<HTMLButtonElement>(null)
+
+  // Shared by the drawer's own Escape handler and its Close button, so
+  // dismissing it either way returns focus to the toggle that opened it.
+  function closeVinTool() {
+    setVinToolOpen(false)
+    vinToolToggleRef.current?.focus()
+  }
+
   return (
     <AuthProvider>
       <RequireAuth>
         <div className="app-shell">
-          <AppHeader />
+          <AppHeader
+            vinToolOpen={vinToolOpen}
+            onToggleVinTool={() => (vinToolOpen ? closeVinTool() : setVinToolOpen(true))}
+            vinToolToggleRef={vinToolToggleRef}
+          />
+          <VinToolPanel open={vinToolOpen} onClose={closeVinTool} />
           <main style={{ flex: 1 }}>
             <Routes>
               <Route path="/" element={<HomePage />} />

@@ -1,0 +1,154 @@
+/* VIN tool slide-out drawer */
+
+.vin-tool-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(420px, 100vw);
+  max-width: 100vw;
+  box-sizing: border-box;
+  background: var(--color-canvas);
+  border-left: 1px solid var(--color-hairline-strong);
+  padding: var(--space-lg);
+  overflow-y: auto;
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  animation: vin-tool-slide-in 0.18s ease-out;
+}
+
+@keyframes vin-tool-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .vin-tool-panel {
+    animation: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .vin-tool-panel {
+    width: 100vw;
+  }
+}
+
+.vin-tool-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.vin-tool-header h2 {
+  outline: none;
+}
+
+.vin-tool-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+  border-top: 1px solid var(--color-hairline);
+  padding-top: var(--space-lg);
+}
+
+.vin-tool-section:first-of-type {
+  border-top: none;
+  padding-top: 0;
+}
+
+/* File input stays focusable; its label is the click target and drop zone. */
+.vin-tool-photo-drop {
+  position: relative;
+}
+
+.vin-tool-photo-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.vin-tool-photo-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  text-align: center;
+  min-height: 160px;
+  padding: var(--space-xl) var(--space-md);
+  border: 2px dashed var(--color-hairline-strong);
+  cursor: pointer;
+}
+
+.vin-tool-photo-input:focus-visible + .vin-tool-photo-label {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 2px;
+}
+
+.vin-tool-photo-label.drag-over {
+  border-style: solid;
+  background: var(--color-surface-soft);
+}
+
+.vin-tool-preview-wrap {
+  display: flex;
+}
+
+.vin-tool-preview {
+  max-width: 100%;
+  border: 1px solid var(--color-hairline-strong);
+}
+
+.vin-tool-progress-bar {
+  height: 8px;
+  background: var(--color-hairline);
+  overflow: hidden;
+}
+
+.vin-tool-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: var(--color-ink);
+  transition: width 0.15s ease-out;
+}
+
+.vin-tool-vin-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: var(--text-body-md-size);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  word-break: break-all;
+}
+
+.vin-decode-fields {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px var(--space-sm);
+  margin: 0;
+}
+
+.vin-decode-field {
+  display: contents;
+}
+
+.vin-decode-fields dt {
+  color: var(--color-mute);
+}
+
+.vin-decode-fields dd {
+  margin: 0;
+}

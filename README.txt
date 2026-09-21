@@ -110,7 +110,9 @@ settings. There are no roles yet.
 -------------------------
 Top menu: Customers, Leads, Jobs, Quotes, Pricing, Command Center,
 Follow-ups, Activity, Integrations. On narrower screens the menu is behind
-the menu button in the top-left corner.
+the menu button in the top-left corner. A separate "VIN tool" button next
+to your account email (top-right) opens a side panel for scanning or
+checking VINs; see VIN TOOL below.
 
 FIRST-TIME SETUP: PRICING (do this before quoting)
   Open Pricing. No prices or tax rates are filled in; the app never
@@ -196,6 +198,27 @@ INTEGRATIONS
   request/notes. Check the preview, then click "Import N valid rows".
   Existing customers are reused; bad rows are skipped and listed.
   The event log at the bottom records every import.
+
+VIN TOOL
+  Click "VIN tool" in the header to open a side panel with three ways to
+  get a VIN:
+  - Photo: choose a file, take a photo (on a phone), drag and drop an
+    image, or paste one with Ctrl+V (Cmd+V on Mac) while the panel is
+    open. It reads the VIN out of the photo and shows what it found.
+  - Text: paste a window sticker, title, or any text and click "Find
+    VINs" to pull out any VIN-like strings.
+  - Check a single VIN: type or paste a VIN directly and see its format
+    and check-digit status as you type.
+  Every match shows the VIN, whether its check digit is valid, and a
+  Copy button. Click "Decode" on any VIN to look up make, model, year,
+  trim and other details.
+  Photo text recognition runs entirely in your browser (no photo is
+  uploaded anywhere). The first scan downloads the text-recognition
+  engine and English language data (several MB) from a public CDN
+  (jsdelivr); later scans use the browser's cached copy.
+  "Decode" sends the VIN to NHTSA's public VIN decoder API
+  (vpic.nhtsa.dot.gov); nothing else about the vehicle or customer is
+  sent.
 
 
 6. STOP THE APP
