@@ -6,15 +6,15 @@ customers, vehicles, leads, quotes, jobs, follow-ups, the Command Center
 and the activity log. It runs in the browser (React + Vite) on a
 Supabase database (Postgres).
 
-This file covers:
-  1. What you need
-  2. Start the app locally (first time)
-  3. Start the app again (every other day)
-  4. Create a user account
-  5. How to operate the app
-  6. Stop the app
-  7. Run the tests
-  8. Troubleshooting
+This file covers (Summary):
+1. What you need: Git, Node.js 22 or newer, and Docker Desktop.
+2. First-time start: clone, install, start the local database, create .env.local, run the app, open http://localhost:5173. It warns never to use the service-role key.
+3. Starting again on later days, including applying new database changes after a git pull.
+4. Creating a user account: the app has no sign-up screen, so accounts are created in Supabase Studio at http://127.0.0.1:54323.
+5. How to use each part: Pricing setup first, then the Front desk, new leads, working a lead, quotes, jobs, follow-ups, the Command Center, Activity, and Integrations with the CSV import format.
+6. Stopping the app, with a warning that npx supabase db reset deletes all local data.
+7. Running the tests.
+8. Troubleshooting: Docker not running, missing .env.local, sign-in problems, the port already in use, errors after pulling new code, and "Tax rule not configured".
 
 
 1. WHAT YOU NEED
