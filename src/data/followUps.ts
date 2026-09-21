@@ -127,9 +127,8 @@ export async function createFollowUp(input: FollowUpInput): Promise<FollowUp> {
     action: validated.value.action,
     notes: validated.value.notes,
   }
-  // Only set owner_id when the caller passed one explicitly — otherwise
-  // leave the key out of the insert so the column's DB default
-  // (auth.uid()) applies.
+  // Only set owner_id when the caller passed one explicitly, so the column's
+  // DB default (auth.uid()) applies otherwise.
   if (input.owner_id !== undefined) payload.owner_id = input.owner_id
 
   const row = unwrap(await supabase.from('follow_ups').insert(payload).select('*').single())
@@ -189,13 +188,8 @@ function appendNote(existing: string | null, addition: string): string {
   return existing ? `${existing}\n${trimmed}` : trimmed
 }
 
-// Applies the source-record effect for a non-snooze outcome (see
-// FOLLOW_UP_OUTCOME_EFFECTS in src/followup/types.ts). Returns whether the
-// source was actually changed. Skips the write when the source is already
-// in the target status, and applies the lead-specific "'contacted' only
-// from 'new'" / quote-specific "'contacted' -> 'follow_up' only from
-// 'presented'" guards. Errors from the underlying A/B functions (e.g. an
-// invalid quote transition) propagate as ValidationError.
+// Applies FOLLOW_UP_OUTCOME_EFFECTS for a non-snooze outcome. Skips the write when the
+// source is already in the target status, and guards 'contacted' transitions per source type.
 async function applySourceEffect(
   sourceType: FollowUpSourceType,
   current: FollowUpWithSource,
@@ -239,11 +233,8 @@ export interface RecordFollowUpOutcomeResult {
   sourceUpdated: boolean
 }
 
-// NOT atomic: the source record (lead/quote/job) is updated FIRST, then the
-// follow-up is marked done. If the second step fails, the follow-up stays
-// open and retryable — calling this again is safe because the source
-// update is skipped once the source is already in the target status. See
-// docs/workstream-c-data.md.
+// NOT atomic: the source record updates first, then the follow-up is marked done. If the
+// second step fails, retrying is safe since the source update is skipped once already applied.
 export async function recordFollowUpOutcome(
   id: string,
   input: RecordFollowUpOutcomeInput,

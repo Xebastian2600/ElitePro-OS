@@ -9,9 +9,7 @@
 --   quote_items.sort_order    — display/edit order within a quote
 --   quote_items.created_at/updated_at — audit timestamps (mirrors vehicles/jobs)
 
--- ============================================================
 -- quotes
--- ============================================================
 create table public.quotes (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid null references public.leads(id) on delete set null,
@@ -35,9 +33,7 @@ create index quotes_status_idx on public.quotes (status);
 create index quotes_lead_id_idx on public.quotes (lead_id);
 create index quotes_customer_id_idx on public.quotes (customer_id);
 
--- ============================================================
 -- quote_items
--- ============================================================
 create table public.quote_items (
   id uuid primary key default gen_random_uuid(),
   quote_id uuid not null references public.quotes(id) on delete cascade,
@@ -54,11 +50,8 @@ create table public.quote_items (
 
 create index quote_items_quote_sort_idx on public.quote_items (quote_id, sort_order);
 
--- ============================================================
 -- pricing_rules
--- One "open" (active_to is null) row per key at a time. set_pricing_rule()
--- closes the previous open row and inserts a new one, so history is kept.
--- ============================================================
+-- One "open" (active_to is null) row per key; set_pricing_rule() closes the old row and inserts a new one, keeping history.
 create table public.pricing_rules (
   id uuid primary key default gen_random_uuid(),
   key text not null check (key in ('price.glass', 'price.labor', 'price.adas', 'price.part', 'tax', 'discount')),
@@ -71,13 +64,8 @@ create table public.pricing_rules (
 
 create unique index pricing_rules_open_key_unique on public.pricing_rules (key) where active_to is null;
 
--- ============================================================
 -- Function: set_pricing_rule
--- Closes the currently open row for p_key (if any) and inserts a new open
--- row, atomically (a single function call runs in one implicit transaction).
--- Client-side shape validation lives in src/quote/pricing.ts
--- (parsePricingRuleValue); this is only a minimal backstop.
--- ============================================================
+-- Runs atomically as one function call. Client validates shape in src/quote/pricing.ts; this is a minimal backstop.
 create function public.set_pricing_rule(p_key text, p_value jsonb)
 returns public.pricing_rules
 language plpgsql
@@ -105,26 +93,19 @@ $$;
 revoke execute on function public.set_pricing_rule(text, jsonb) from public;
 grant execute on function public.set_pricing_rule(text, jsonb) to authenticated;
 
--- ============================================================
 -- Triggers: set_updated_at (reuse Workstream A's function)
--- ============================================================
 create trigger quotes_set_updated_at before update on public.quotes
   for each row execute function public.set_updated_at();
 
 create trigger quote_items_set_updated_at before update on public.quote_items
   for each row execute function public.set_updated_at();
 
--- ============================================================
--- Trigger: enforce_vehicle_owner (reuse Workstream A's function — it only
--- looks at NEW.customer_id / NEW.vehicle_id, so it works unchanged here)
--- ============================================================
+-- Trigger: enforce_vehicle_owner (reuse Workstream A's function; it only reads NEW.customer_id/vehicle_id)
 create trigger quotes_enforce_vehicle_owner before insert or update on public.quotes
   for each row execute function public.enforce_vehicle_owner();
 
--- ============================================================
 -- Trigger: enforce_quote_lead
 -- A quote's lead (when set) must belong to the same customer as the quote.
--- ============================================================
 create function public.enforce_quote_lead()
 returns trigger
 language plpgsql
@@ -147,13 +128,9 @@ $$;
 create trigger quotes_enforce_lead before insert or update on public.quotes
   for each row execute function public.enforce_quote_lead();
 
--- ============================================================
 -- Trigger: enforce_quote_status
--- Enforces QUOTE_TRANSITIONS from src/quote/types.ts as a DB-level backstop
--- to validateQuoteTransition() in src/quote/status.ts. Also requires at
--- least one non-discount line before a quote can be presented or approved,
--- and clears lost_reason when a lost quote is reopened to draft.
--- ============================================================
+-- DB-level backstop to validateQuoteTransition() in src/quote/status.ts. Also requires a
+-- non-discount line before presenting/approving, and clears lost_reason on lost -> draft.
 create function public.enforce_quote_status()
 returns trigger
 language plpgsql
@@ -197,11 +174,8 @@ create trigger quotes_enforce_status before update of status on public.quotes
   for each row when (old.status is distinct from new.status)
   execute function public.enforce_quote_status();
 
--- ============================================================
 -- Trigger: enforce_quote_lock
--- Approved/lost quotes keep their priced content frozen; only a status
--- change (lost -> draft) or notes may touch them.
--- ============================================================
+-- Approved/lost quotes keep priced content frozen; only a status change (lost -> draft) or notes may touch them.
 create function public.enforce_quote_lock()
 returns trigger
 language plpgsql
@@ -226,16 +200,12 @@ $$;
 create trigger quotes_enforce_lock before update on public.quotes
   for each row execute function public.enforce_quote_lock();
 
--- ============================================================
 -- Trigger: log_activity('quote') (reuse Workstream A's function)
--- ============================================================
 create trigger quotes_log_activity after insert or update on public.quotes
   for each row execute function public.log_activity('quote');
 
--- ============================================================
 -- Trigger: quote_items lock
 -- Once a quote is approved or lost, its items are frozen.
--- ============================================================
 create function public.enforce_quote_item_lock()
 returns trigger
 language plpgsql
@@ -261,11 +231,8 @@ $$;
 create trigger quote_items_lock before insert or update or delete on public.quote_items
   for each row execute function public.enforce_quote_item_lock();
 
--- ============================================================
 -- Trigger: log_quote_item_activity
--- quote_items has no direct RLS write-log of its own; log against the
--- parent quote's activity feed instead (entity_type 'quote').
--- ============================================================
+-- quote_items has no activity log of its own; logs against the parent quote instead (entity_type 'quote').
 create function public.log_quote_item_activity()
 returns trigger
 language plpgsql
@@ -290,7 +257,7 @@ begin
     return old;
   end if;
 
-  -- TG_OP = 'UPDATE': skip no-op updates (e.g. a save that reorders other rows only)
+  -- skip no-op updates (e.g. a save that only reorders other rows)
   select array_agg(key) into v_changed
   from jsonb_each(to_jsonb(old)) o(key, value)
   where key <> 'updated_at'
@@ -321,18 +288,12 @@ $$;
 create trigger quote_items_log_activity after insert or update or delete on public.quote_items
   for each row execute function public.log_quote_item_activity();
 
--- ============================================================
 -- Trigger: log_activity('pricing_rule') (reuse Workstream A's function)
--- ============================================================
 create trigger pricing_rules_log_activity after insert or update on public.pricing_rules
   for each row execute function public.log_activity('pricing_rule');
 
--- ============================================================
 -- jobs <-> quotes integration
--- Pre-agreed with Workstream A (see the comment on jobs.quote_id in
--- 20260921000000_core_crm.sql). NOT VALID so existing dev rows with random
--- quote_ids don't break the migration; new/updated rows are still checked.
--- ============================================================
+-- NOT VALID so existing dev rows with random quote_ids don't block the migration; new/updated rows are still checked.
 alter table public.jobs
   add constraint jobs_quote_id_fkey foreign key (quote_id) references public.quotes(id) on delete restrict not valid;
 
@@ -350,7 +311,7 @@ begin
     from public.quotes where id = new.quote_id;
 
     if not found then
-      -- Nonexistent quote_id: let the (NOT VALID but still-enforced-on-write) FK reject it.
+      -- let the FK (NOT VALID, still enforced on write) reject a nonexistent quote_id
       return new;
     end if;
 
@@ -370,9 +331,7 @@ $$;
 create trigger jobs_enforce_quote before insert or update of quote_id on public.jobs
   for each row execute function public.enforce_job_quote();
 
--- ============================================================
 -- RLS
--- ============================================================
 alter table public.quotes enable row level security;
 alter table public.quote_items enable row level security;
 alter table public.pricing_rules enable row level security;

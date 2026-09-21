@@ -1,6 +1,6 @@
 @import './tokens.css';
 
-/* ---------- Reset ---------- */
+/* Reset */
 *,
 *::before,
 *::after {
@@ -74,7 +74,7 @@ img {
   outline-color: var(--color-on-dark);
 }
 
-/* ---------- Type scale utility classes ---------- */
+/* Type scale utility classes */
 .text-display-xl {
   font-size: var(--text-display-xl-size);
   font-weight: var(--weight-display);
@@ -146,7 +146,7 @@ img {
   color: var(--color-error-text);
 }
 
-/* ---------- Layout ---------- */
+/* Layout */
 .app-shell {
   min-height: 100%;
   display: flex;
@@ -262,7 +262,7 @@ img {
   border-top: 1px solid var(--color-hairline);
 }
 
-/* ---------- Nav ---------- */
+/* Nav */
 .nav-bar {
   position: relative;
   height: var(--nav-height);
@@ -333,9 +333,8 @@ img {
   white-space: nowrap;
 }
 
-/* Raised from 1023px so the now-longer link list (Command Center, Follow-ups,
-   Activity, Integrations added) collapses to the hamburger before it can
-   overflow nav-bar__inner at common laptop widths like 1280px. */
+/* Raised from 1023px so the longer link list collapses to the hamburger before it
+   overflows nav-bar__inner at common laptop widths like 1280px. */
 @media (max-width: 1365px) {
   .nav-bar__menu-toggle {
     display: inline-flex;
@@ -374,7 +373,7 @@ img {
   }
 }
 
-/* ---------- Buttons ---------- */
+/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -459,7 +458,7 @@ img {
   }
 }
 
-/* ---------- Forms ---------- */
+/* Forms */
 .field {
   display: flex;
   flex-direction: column;
@@ -547,7 +546,7 @@ img {
   font-size: var(--text-body-sm-size);
 }
 
-/* ---------- Cards ---------- */
+/* Cards */
 .card {
   background: var(--color-surface-card);
   border: 1px solid var(--color-hairline-strong);
@@ -567,7 +566,7 @@ img {
   padding: var(--space-lg);
 }
 
-/* ---------- Pills / filters ---------- */
+/* Pills / filters */
 .pills {
   display: flex;
   gap: var(--space-xs);
@@ -603,7 +602,7 @@ img {
   }
 }
 
-/* ---------- Status badges ---------- */
+/* Status badges */
 .badge {
   display: inline-flex;
   align-items: center;
@@ -646,9 +645,8 @@ img {
   color: var(--color-mute);
 }
 
-/* On a dark surface (e.g. inside the page-header band) the default black
-   text/border become invisible — swap to white text with a low-contrast
-   divider outline, keeping each tone's dot color as the only accent. */
+/* On a dark surface the default black text/border become invisible; swap to white
+   text with a low-contrast divider outline, keeping each tone's dot as the accent. */
 .badge--on-dark {
   color: var(--color-on-dark);
   border-color: var(--color-divider-dark);
@@ -664,7 +662,7 @@ img {
   color: var(--color-error);
 }
 
-/* ---------- Page header ---------- */
+/* Page header */
 .page-header {
   background: var(--color-surface-dark);
   color: var(--color-on-dark);
@@ -694,7 +692,7 @@ img {
   }
 }
 
-/* ---------- Empty state / loading ---------- */
+/* Empty state / loading */
 .empty-state {
   border: 1px dashed var(--color-stone);
   padding: var(--space-xxl) var(--space-lg);
@@ -708,7 +706,7 @@ img {
   padding: var(--space-sm) 0;
 }
 
-/* ---------- Misc ---------- */
+/* Misc */
 .hairline-divider {
   border: none;
   border-top: 1px solid var(--color-hairline);

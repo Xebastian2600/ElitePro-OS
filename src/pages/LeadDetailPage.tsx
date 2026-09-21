@@ -77,7 +77,6 @@ export function LeadDetailPage() {
   const kbAvailable = useMemo(() => getKbClient().available, [])
   const [kbContext, setKbContext] = useState<{ query: string; categories: KbCategory[] } | undefined>(undefined)
 
-  // Editable fields
   const [editing, setEditing] = useState(false)
   const [source, setSource] = useState('')
   const [request, setRequest] = useState('')

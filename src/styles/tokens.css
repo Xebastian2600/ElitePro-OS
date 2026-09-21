@@ -25,9 +25,8 @@
   --color-badge-new: #ffed00;
   --color-link: #0000ee;
   --color-error: #be6464;
-  /* Error red for TEXT. #be6464 is only 4.04:1 on white (fails AA for small
-     text); #a83f3f is 6.09:1 on white and 5.54:1 on the #fbf2f2 error banner.
-     Keep --color-error for borders/dots (non-text, 3:1). */
+  /* #be6464 fails AA for text (4.04:1 on white); use --color-error-text (6.09:1) for text,
+     this one for borders/dots only. */
   --color-error-text: #a83f3f;
   --color-warning: #f0ad4e;
   --color-success: #8dc572;

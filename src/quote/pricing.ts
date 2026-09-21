@@ -160,9 +160,8 @@ export function resolvePricingRules(rows: PricingRuleRow[], now: Date): PricingC
     }
   }
 
-  // Rows whose key isn't a recognized PricingRuleKey at all can't resolve
-  // into any config slot, but an active one is still a real misconfiguration
-  // worth surfacing.
+  // Rows with an unrecognized key can't resolve into any config slot, but an active one
+  // is still a real misconfiguration worth surfacing.
   const unknownKeys = new Set(rows.filter((row) => !knownKeys.has(row.key)).map((row) => row.key))
   for (const unknownKey of unknownKeys) {
     const best = pickActiveRow(

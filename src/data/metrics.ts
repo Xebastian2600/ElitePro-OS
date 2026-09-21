@@ -1,8 +1,5 @@
-// Command Center metrics + "today board" lists. Every number here comes
-// from a real query — nothing is mocked or seeded. See the field comments
-// on CommandCenterMetrics (src/followup/types.ts) for exactly what each
-// number means, and docs/workstream-c-data.md §"Metric definitions" for the
-// query behind each one.
+// Command Center metrics + "today board" lists — every number comes from a real query,
+// nothing mocked or seeded. See CommandCenterMetrics (src/followup/types.ts) for what each number means.
 
 import { supabase } from '../lib/supabase.ts'
 import { periodRange, conversionRate } from '../analytics/period.ts'
@@ -164,9 +161,8 @@ export async function getCommandCenterMetrics(period: MetricPeriod, now: Date = 
   }
 }
 
-// Local duplicates of the join-select strings in src/data/leads.ts and
-// src/data/jobs.ts (not exported there, and those files are not to be
-// modified) — kept in sync with LeadWithRefs / JobWithRefs.
+// Local duplicates of the join-select strings in src/data/leads.ts and src/data/jobs.ts
+// (not exported there); kept in sync with LeadWithRefs / JobWithRefs.
 const LEAD_WITH_REFS_SELECT = '*, customer:customers(id,name,phone,email), vehicle:vehicles(id,year,make,model,vin)'
 const JOB_WITH_REFS_SELECT = '*, customer:customers(id,name,phone,email), vehicle:vehicles(id,year,make,model,vin)'
 
@@ -177,8 +173,8 @@ export interface TodayBoard {
   followUpsDue: FollowUpWithSource[]
 }
 
-// The lists the Command Center shows "today": leads created today, quotes
-// still open, jobs appointed today, and follow-ups overdue or due today.
+// "Today" lists: leads created today, quotes still open, jobs appointed today,
+// and follow-ups overdue or due today.
 export async function listTodayBoard(now: Date = new Date()): Promise<TodayBoard> {
   const { start: startToday, end: endToday } = periodRange('today', now)
 

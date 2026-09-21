@@ -1,23 +1,12 @@
-// Integration adapter registry.
+// Integration adapter registry. These three entries are placeholders — no network
+// calls, no live or fabricated data — so the UI has something honest to show
+// ("Dialpad: not connected") before a real adapter is built.
 //
-// These three entries are placeholders: no network calls, no env reads, no
-// live or fabricated data. They exist so the UI has something honest to
-// show ("Dialpad: not connected") and so the shape of a real adapter is
-// settled before one is built.
-//
-// To add a real adapter later:
-//   1. Implement IntegrationAdapter (id/name/description/capabilities/status)
-//      in its own file under src/integrations/ and register it below.
-//   2. Have it normalize whatever it receives (webhook payload, poll
-//      response, manual sync, ...) into InboundLeadEvent
-//      (src/integrations/types.ts).
-//   3. Write it through with an importLeads-style orchestration (see
-//      src/integrations/leadImport.ts) — findCustomerMatches, then reuse or
-//      createCustomer, then createLead — and log every exchange with
-//      logIntegrationEvent (src/data/integrationEvents.ts).
-//   4. Never call Workstream A/B tables (customers, leads, vehicles, jobs,
-//      quotes, pricing_rules) directly from adapter code — always go
-//      through src/data/*.ts so validation and dedup stay centralized.
+// To add a real adapter: implement IntegrationAdapter in its own file and register it
+// below; normalize its input to InboundLeadEvent (src/integrations/types.ts); write
+// through with importLeads-style orchestration (src/integrations/leadImport.ts) and
+// log every exchange with logIntegrationEvent; never call Workstream A/B tables
+// directly from adapter code — always go through src/data/*.ts.
 
 import type { IntegrationAdapter, IntegrationId, IntegrationStatus } from './types.ts'
 

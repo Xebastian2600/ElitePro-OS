@@ -1,8 +1,6 @@
-// Pure mapping/validation (buildLeadImportPreview) plus a thin, injectable
-// orchestrator (importLeads) for turning a parsed CSV into customers and
-// leads. No Supabase import here — buildLeadImportPreview does no I/O at
-// all, and importLeads takes its data dependencies as arguments so it can
-// be unit tested without a database.
+// Pure mapping/validation (buildLeadImportPreview) plus a thin, injectable orchestrator
+// (importLeads) for turning a parsed CSV into customers and leads. No Supabase import:
+// importLeads takes its data dependencies as arguments so it can be unit tested without a database.
 
 import { isValidEmail, normalizeEmail, normalizePhone } from '../shared/validation.ts'
 import type { Customer, CustomerInput, Lead, LeadInput } from '../shared/types.ts'
@@ -148,11 +146,9 @@ export function buildLeadImportPreview(rows: string[][]): LeadImportPreview {
   return { headers, mapping, rows: results, missingRequired: [] }
 }
 
-// Mirrors the signature of logIntegrationEvent from src/data/integrationEvents.ts
-// (owned by a separate, concurrently-built workstream). Duplicated here as a
-// minimal structural type so this module has no import-time dependency on
-// that file's existence — once it lands, its logIntegrationEvent can be
-// passed straight through as this dep without changes.
+// Mirrors the signature of logIntegrationEvent (src/data/integrationEvents.ts) as a
+// structural type, so this module has no import-time dependency on that file — the
+// real function is passed straight through as this dep, unchanged.
 export interface LogIntegrationEventInput {
   source: 'dialpad' | 'ghl' | 'hcp' | 'csv' | 'manual'
   direction: 'inbound' | 'outbound'

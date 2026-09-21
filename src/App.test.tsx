@@ -192,10 +192,8 @@ vi.mock('./data/pricingRules.ts', () => ({
   setPricingRule: vi.fn(async () => ({})),
 }))
 
-// Workstream C data modules — mocked here too, since LeadDetailPage /
-// JobDetailPage / QuoteWorkspacePage each now render a FollowUpPanel, and
-// CommandCenterPage / FollowUpsPage / ActivityPage / IntegrationsPage below
-// would otherwise hit the real (un-mocked) supabase client.
+// Mocked here too since LeadDetailPage/JobDetailPage/QuoteWorkspacePage now render a
+// FollowUpPanel, and the pages below would otherwise hit the real supabase client.
 const emptyMetricsFixture = {
   range: { period: 'today' as const, start: '2024-01-01T00:00:00.000Z', end: '2024-01-02T00:00:00.000Z' },
   leads_created: 0,

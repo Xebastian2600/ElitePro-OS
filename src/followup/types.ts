@@ -3,9 +3,7 @@
 
 import type { StatusOption } from '../shared/types.ts'
 
-// ------------------------------------------------------------------
 // Follow-ups
-// ------------------------------------------------------------------
 
 // open: in the queue. done: an outcome was recorded. cancelled: dropped
 // without an outcome. Snoozing keeps a follow-up open with a later due_at.
@@ -85,9 +83,7 @@ export interface FollowUpWithSource extends FollowUp {
 // Queue bucket, computed client-side from due_at and "now".
 export type DueState = 'overdue' | 'due_today' | 'upcoming'
 
-// ------------------------------------------------------------------
-// Command Center metrics (all derived from real rows — never mocked)
-// ------------------------------------------------------------------
+// Command Center metrics (all derived from real rows, never mocked)
 
 export type MetricPeriod = 'today' | '7d' | '30d'
 

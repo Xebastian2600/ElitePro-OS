@@ -1,9 +1,5 @@
-// Sanitization for user-typed search text before it's interpolated into a
-// PostgREST `.or()` / `.ilike()` filter string. PostgREST's filter DSL treats
-// `,`, `(`, `)`, `"`, `\`, `:`, and `*` as structural characters, and `%` is
-// the ilike wildcard — left in place, any of these let a search term break
-// out of the intended filter (e.g. "Honda, Civic" injecting an extra
-// condition) or blow up the request entirely.
+// Strips characters PostgREST's .or()/.ilike() filter DSL treats as structural (,()"\:*%)
+// from user search text, so a term like "Honda, Civic" can't break out of the filter.
 
 const RESERVED_CHARS_RE = /[,()"\\:*%]/g
 

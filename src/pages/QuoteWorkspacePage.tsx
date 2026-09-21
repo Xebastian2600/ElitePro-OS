@@ -120,9 +120,8 @@ export function QuoteWorkspacePage() {
 
   const displayCalculation = editable ? liveCalculation : storedCalculation
 
-  // Warn when the CURRENT pricing rules would produce different totals for the
-  // stored (saved) items than what's on the quote — the calculator, not this
-  // page, owns what "different" means (issues aside, we just compare totals).
+  // Warn when current pricing rules would produce different totals for the stored items
+  // than what's on the quote; this just compares totals, not what "different" means.
   const rulesChanged = useMemo(() => {
     if (!editable || !currentPricing || !quote) return false
     const calcWithCurrentRules = calculateQuote(savedItems.map(toItemInput), currentPricing)

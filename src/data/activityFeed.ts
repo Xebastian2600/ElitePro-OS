@@ -1,7 +1,5 @@
-// Cross-entity activity feed for the Command Center. Read-only: activity
-// rows are written exclusively by the log_activity() trigger — see
-// src/data/activity.ts (kept untouched; this is the multi-entity/date-range
-// sibling of it).
+// Cross-entity activity feed for the Command Center. Read-only: rows are written only by
+// the log_activity() trigger (src/data/activity.ts); this is its multi-entity/date-range sibling.
 
 import { supabase } from '../lib/supabase.ts'
 import type { Activity, EntityType } from '../shared/types.ts'

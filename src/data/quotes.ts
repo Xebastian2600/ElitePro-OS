@@ -22,9 +22,8 @@ export const QUOTE_WITH_REFS_SELECT = '*, customer:customers(id,name,phone,email
 
 export type QuoteWithRefs = Quote & { customer: CustomerRef | null; vehicle: VehicleRef | null }
 
-// PostgREST/pg may hand numeric(12,2) columns back as strings, depending on
-// driver/precision — normalize into the plain-number shape the shared
-// contract (src/quote/types.ts) expects.
+// PostgREST may return numeric(12,2) columns as strings; normalize to the plain-number
+// shape the shared contract (src/quote/types.ts) expects.
 function toQuote(row: Record<string, unknown>): Quote {
   return {
     id: row.id as string,
@@ -129,10 +128,8 @@ export async function createQuote(input: QuoteCreateInput): Promise<Quote> {
   return toQuote(row as unknown as Record<string, unknown>)
 }
 
-// Which quote-item field a blocking calculation issue is about, for a
-// index-keyed ValidationError (e.g. "items.2.quantity"). Issues without an
-// index (e.g. discount_exceeds_gross, which is about the whole quote) are
-// keyed under "_".
+// Maps a blocking issue to a form field key, e.g. "items.2.quantity". Issues without
+// an index (e.g. discount_exceeds_gross) are keyed under "_".
 function issueField(issue: CalculationIssue): string {
   if (issue.code === 'invalid_quantity') return 'quantity'
   if (issue.code === 'invalid_price') {
@@ -147,10 +144,8 @@ function issueKey(issue: CalculationIssue): string {
   return issue.index !== undefined ? `items.${issue.index}.${issueField(issue)}` : '_'
 }
 
-// Issue codes that block saveQuote itself (malformed lines). The remaining
-// blocking codes (tax_not_configured, no_items, discount_exceeds_max) only
-// block *status* transitions (see updateQuoteStatus / validateQuoteTransition)
-// — a draft can be saved half-finished.
+// Malformed-line codes block saveQuote itself; the rest (tax_not_configured, no_items,
+// discount_exceeds_max) only block status transitions — a draft can be saved half-finished.
 const SAVE_BLOCKING_CODES = new Set(['invalid_quantity', 'invalid_price', 'discount_exceeds_gross'])
 
 interface ItemFields {
@@ -175,12 +170,8 @@ function itemPatch(current: QuoteItem, next: ItemFields): Partial<ItemFields> | 
   return Object.keys(patch).length > 0 ? patch : null
 }
 
-// Saves a quote's line items and recomputed totals. NOT atomic — items are
-// written across several requests (delete removed -> update changed ->
-// insert new), then the quote's subtotal/tax/total/pricing_snapshot are
-// written last, so a mid-save failure always leaves the persisted items
-// recomputable via recalculateStoredQuote() rather than a half-applied
-// total. See docs/workstream-b-data.md.
+// NOT atomic: items are written across several requests (delete -> update -> insert),
+// then totals last, so a mid-save failure leaves items recomputable via recalculateStoredQuote().
 export async function saveQuote(
   id: string,
   input: { items: QuoteItemInput[]; notes?: string | null },
@@ -245,8 +236,7 @@ export async function saveQuote(
     if (patch) toUpdate.push({ id: item.id, patch })
   })
 
-  // Items first (delete -> update -> insert), totals last — see the function
-  // comment on why this order matters for partial-failure recovery.
+  // delete -> update -> insert, totals last (see saveQuote's atomicity note above)
   if (toDeleteIds.length > 0) {
     unwrap(await supabase.from('quote_items').delete().in('id', toDeleteIds).select('id'))
   }

@@ -35,10 +35,8 @@ export interface CopilotItem {
   kbQuery?: { query: string; categories: KbCategory[] }
 }
 
-// Fixed message templates. Every non-calculation item's message is one of
-// these, verbatim — tests assert against this map. Calculation-issue
-// ('calc_*') items use the calculator's own issue message instead, since
-// that message can legitimately include dollar amounts.
+// Every non-calculation item's message is one of these templates, verbatim (tests assert
+// against this map). calc_* items use the calculator's own message, which may include $ amounts.
 export const COPILOT_MESSAGE_TEMPLATES = {
   missing_customer: 'Select or create a customer.',
   missing_vehicle: 'Attach a vehicle before quoting.',

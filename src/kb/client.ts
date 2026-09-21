@@ -17,10 +17,8 @@ export function createUnavailableKbClient(): KbClient {
 
 let cachedClient: KbClient | null = null
 
-// Reads config from import.meta.env and lazily imports ../lib/supabase.ts
-// only when a real search is performed against a configured backend — so
-// importing this module (or calling getKbClient with no URL configured)
-// never requires Supabase env vars to be set.
+// Lazily imports ../lib/supabase.ts only when a real search runs against a configured
+// backend, so importing this module never requires Supabase env vars to be set.
 export function getKbClient(): KbClient {
   if (cachedClient) return cachedClient
 

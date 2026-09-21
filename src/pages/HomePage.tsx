@@ -8,8 +8,8 @@ import { listLeads } from '../data/leads.ts'
 import { listJobs } from '../data/jobs.ts'
 import { LoadingLine } from '../components/ui/LoadingLine.tsx'
 
-// NOTE: this is a minimal CSR landing page for Workstream A. Workstream C owns
-// the real Dashboard / Command Center and will replace this view later.
+// Minimal front-desk landing page: customer search and at-a-glance open lead/job
+// counts, with a link into the full Command Center dashboard.
 export function HomePage() {
   const navigate = useNavigate()
   const { data: leads, loading: leadsLoading } = useAsync(() => listLeads(), [])

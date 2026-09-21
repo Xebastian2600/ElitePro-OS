@@ -36,9 +36,8 @@ function parseSource(value: unknown): KbSource | null {
   }
 }
 
-// Exported for tests. Strictly parses an untrusted JSON body into a
-// KbSearchResult, dropping malformed sources. Grounding rule: a non-empty
-// answer with zero valid sources is never shown — it comes back as null.
+// Exported for tests. Strictly parses an untrusted JSON body, dropping malformed sources.
+// Grounding rule: a non-empty answer with zero valid sources is never shown — comes back null.
 export function parseKbResponse(json: unknown): KbSearchResult {
   if (!isPlainObject(json)) return { answer: null, sources: [] }
 

@@ -143,9 +143,8 @@ export function calculateQuote(items: QuoteItemInput[], config: PricingConfig): 
 
   const scale = rawDiscountTotalCents > 0 ? finalDiscountTotalCents / rawDiscountTotalCents : 1
 
-  // Distribute the (possibly clamped) discount total across discount lines,
-  // proportionally, with the rounding remainder absorbed by the last
-  // discount line so the sum always equals finalDiscountTotalCents exactly.
+  // Distribute the (possibly clamped) discount across lines proportionally; the rounding
+  // remainder is absorbed by the last line so the sum always equals finalDiscountTotalCents.
   const discountIndexes = items.map((item, index) => (item.type === 'discount' ? index : -1)).filter((i) => i >= 0)
   const clampedDiscountCents: number[] = new Array(items.length).fill(0)
   let assigned = 0

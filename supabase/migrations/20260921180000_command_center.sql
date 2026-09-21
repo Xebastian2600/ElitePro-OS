@@ -4,12 +4,9 @@
 -- and Workstream B (quotes, 20260921120000_quotes_pricing.sql). Reuses
 -- public.set_updated_at() and public.log_activity(entity_type) from A.
 
--- ============================================================
 -- follow_ups
--- Exactly one of lead_id/quote_id/job_id is set (num_nonnulls check).
--- Snoozing (see src/followup/due.ts snoozeUntil) only moves due_at and
--- leaves the row open — it does not touch status/outcome/completed_at.
--- ============================================================
+-- Exactly one of lead_id/quote_id/job_id is set (num_nonnulls check). Snoozing (src/followup/due.ts
+-- snoozeUntil) only moves due_at and leaves the row open; it doesn't touch status/outcome/completed_at.
 create table public.follow_ups (
   id uuid primary key default gen_random_uuid(),
   lead_id uuid null references public.leads(id) on delete cascade,
@@ -46,12 +43,9 @@ create trigger follow_ups_set_updated_at before update on public.follow_ups
 create trigger follow_ups_log_activity after insert or update on public.follow_ups
   for each row execute function public.log_activity('follow_up');
 
--- ============================================================
 -- integration_events
--- Event log for future Dialpad/GHL/HCP/CSV adapters (owned by src/integrations/**,
--- consumed via src/data/integrationEvents.ts). Starts EMPTY — no seed rows.
+-- Event log for the Dialpad/GHL/HCP/CSV adapters (src/integrations/**, src/data/integrationEvents.ts).
 -- Append-only: authenticated may select/insert; no update/delete policy.
--- ============================================================
 create table public.integration_events (
   id uuid primary key default gen_random_uuid(),
   source text not null check (source in ('dialpad', 'ghl', 'hcp', 'csv', 'manual')),
@@ -69,12 +63,9 @@ create table public.integration_events (
 create index integration_events_created_at_idx on public.integration_events (created_at desc);
 create index integration_events_source_created_at_idx on public.integration_events (source, created_at desc);
 
--- ============================================================
 -- Function: list_team_members
--- There is no users/profiles table (see docs/workstream-a-data.md §8), so
--- this is how the UI populates an owner picker or an activity "user" filter.
+-- No users/profiles table exists, so this is how the UI populates an owner picker or user filter.
 -- security definer to read auth.users; locked down to authenticated only.
--- ============================================================
 create function public.list_team_members()
 returns table(id uuid, email text)
 language sql
@@ -89,9 +80,7 @@ revoke execute on function public.list_team_members() from public;
 revoke execute on function public.list_team_members() from anon;
 grant execute on function public.list_team_members() to authenticated;
 
--- ============================================================
 -- RLS
--- ============================================================
 alter table public.follow_ups enable row level security;
 alter table public.integration_events enable row level security;
 
@@ -101,26 +90,18 @@ revoke all on public.integration_events from anon;
 create policy follow_ups_select on public.follow_ups for select to authenticated using (true);
 create policy follow_ups_insert on public.follow_ups for insert to authenticated with check (true);
 create policy follow_ups_update on public.follow_ups for update to authenticated using (true) with check (true);
--- No delete policy: follow-ups are cancelled, never deleted. Also revoke the
--- delete grant itself (not just the RLS policy) so a delete attempt errors
--- outright instead of silently affecting zero rows — same pattern as
--- Workstream A's read-only `activity` table.
+-- No delete policy: follow-ups are cancelled, never deleted. Grant is revoked too, so a delete
+-- attempt errors outright instead of silently affecting zero rows.
 revoke delete on public.follow_ups from authenticated;
 
 create policy integration_events_select on public.integration_events for select to authenticated using (true);
 create policy integration_events_insert on public.integration_events for insert to authenticated with check (true);
--- No update/delete policy: integration_events is an append-only log. Revoke
--- the grants too, so an update/delete attempt errors outright instead of
+-- Append-only log: grants are revoked too, so update/delete errors outright instead of
 -- silently affecting zero rows.
 revoke update, delete on public.integration_events from authenticated;
 
--- ============================================================
--- Guards
--- - A resolved (done/cancelled) follow-up is final: the client already
---   refuses to edit it, and this makes the DB refuse too.
--- - created_by / actor_id always come from the session, never from the
---   client payload, so audit fields can't be spoofed.
--- ============================================================
+-- Guards: a resolved (done/cancelled) follow-up is final at the DB level too, and
+-- created_by/actor_id always come from the session so audit fields can't be spoofed.
 create function public.enforce_follow_up_final()
 returns trigger
 language plpgsql
@@ -163,11 +144,8 @@ $$;
 create trigger integration_events_stamp_actor before insert on public.integration_events
   for each row execute function public.stamp_integration_event_actor();
 
--- ============================================================
--- Metrics helper: distinct entities whose status changed to p_to within
--- [p_start, p_end). Counted in SQL so the result isn't capped by the API's
--- max-rows limit. security invoker: runs under the caller's RLS.
--- ============================================================
+-- Metrics helper: distinct entities whose status changed to p_to within [p_start, p_end).
+-- Counted in SQL so the result isn't capped by the API's max-rows limit. security invoker: runs under caller's RLS.
 create function public.count_status_changes(p_entity_type text, p_to text, p_start timestamptz, p_end timestamptz)
 returns integer
 language sql

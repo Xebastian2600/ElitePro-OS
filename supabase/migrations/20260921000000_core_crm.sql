@@ -1,9 +1,7 @@
 -- ElitePro OS Lite — Core CRM (Workstream A shared contract)
 -- customers, vehicles, leads, jobs, activity + triggers + RLS.
 
--- ============================================================
 -- customers
--- ============================================================
 create table public.customers (
   id uuid primary key default gen_random_uuid(),
   name text not null check (length(trim(name)) > 0),
@@ -22,9 +20,7 @@ create unique index customers_phone_unique on public.customers (phone) where pho
 create unique index customers_email_unique on public.customers (email) where email is not null;
 create index customers_name_search_idx on public.customers (lower(name));
 
--- ============================================================
 -- vehicles
--- ============================================================
 create table public.vehicles (
   id uuid primary key default gen_random_uuid(),
   customer_id uuid not null references public.customers(id) on delete restrict,
@@ -46,9 +42,7 @@ create table public.vehicles (
 create unique index vehicles_vin_unique on public.vehicles (vin) where vin is not null;
 create index vehicles_customer_id_idx on public.vehicles (customer_id);
 
--- ============================================================
 -- leads
--- ============================================================
 create table public.leads (
   id uuid primary key default gen_random_uuid(),
   customer_id uuid null references public.customers(id) on delete restrict,
@@ -68,14 +62,10 @@ create table public.leads (
 create index leads_status_idx on public.leads (status);
 create index leads_customer_id_idx on public.leads (customer_id);
 
--- ============================================================
 -- jobs
--- ============================================================
 create table public.jobs (
   id uuid primary key default gen_random_uuid(),
-  -- quote_id intentionally has NO foreign key here: the `quotes` table is owned by
-  -- Workstream B. They will add `foreign key (quote_id) references quotes(id)` in a
-  -- later migration once that table exists.
+  -- quote_id has no FK here; added in the quotes migration (20260921120000_quotes_pricing.sql).
   quote_id uuid null,
   customer_id uuid not null references public.customers(id) on delete restrict,
   vehicle_id uuid not null references public.vehicles(id) on delete restrict,
@@ -92,11 +82,8 @@ create unique index jobs_quote_id_unique on public.jobs (quote_id) where quote_i
 create index jobs_status_idx on public.jobs (status);
 create index jobs_customer_id_idx on public.jobs (customer_id);
 
--- ============================================================
 -- activity
--- Owned by Workstream C going forward; created here as the baseline exactly
--- per the shared contract so Workstreams A/B can log against it from day one.
--- ============================================================
+-- Owned by Workstream C; created here as the baseline so A/B can log against it from day one.
 create table public.activity (
   id uuid primary key default gen_random_uuid(),
   entity_type text not null,
@@ -110,9 +97,7 @@ create table public.activity (
 create index activity_entity_idx on public.activity (entity_type, entity_id, created_at desc);
 create index activity_created_at_idx on public.activity (created_at desc);
 
--- ============================================================
 -- Triggers: set_updated_at
--- ============================================================
 create function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -135,9 +120,7 @@ create trigger leads_set_updated_at before update on public.leads
 create trigger jobs_set_updated_at before update on public.jobs
   for each row execute function public.set_updated_at();
 
--- ============================================================
 -- Trigger: enforce_vehicle_owner
--- ============================================================
 create function public.enforce_vehicle_owner()
 returns trigger
 language plpgsql
@@ -167,9 +150,7 @@ create trigger leads_enforce_vehicle_owner before insert or update on public.lea
 create trigger jobs_enforce_vehicle_owner before insert or update on public.jobs
   for each row execute function public.enforce_vehicle_owner();
 
--- ============================================================
 -- Trigger: log_activity
--- ============================================================
 create function public.log_activity()
 returns trigger
 language plpgsql
@@ -258,11 +239,8 @@ create trigger leads_log_activity after insert or update on public.leads
 create trigger jobs_log_activity after insert or update on public.jobs
   for each row execute function public.log_activity('job');
 
--- ============================================================
 -- RLS
--- The anon key is the only key the browser ever holds. There are no delete
--- policies anywhere: the MVP never deletes rows.
--- ============================================================
+-- The anon key is the only key the browser holds. No delete policies: the MVP never deletes rows.
 alter table public.customers enable row level security;
 alter table public.vehicles enable row level security;
 alter table public.leads enable row level security;

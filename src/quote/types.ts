@@ -7,9 +7,7 @@
 
 import type { StatusOption } from '../shared/types.ts'
 
-// ------------------------------------------------------------------
 // Quote status
-// ------------------------------------------------------------------
 
 export type QuoteStatus = 'draft' | 'presented' | 'follow_up' | 'approved' | 'lost'
 
@@ -33,9 +31,7 @@ export const QUOTE_TRANSITIONS: Record<QuoteStatus, QuoteStatus[]> = {
 // Items can only change while the quote is in one of these statuses.
 export const EDITABLE_QUOTE_STATUSES: QuoteStatus[] = ['draft', 'presented', 'follow_up']
 
-// ------------------------------------------------------------------
 // Quote items
-// ------------------------------------------------------------------
 
 export type QuoteItemType = 'glass' | 'labor' | 'adas' | 'part' | 'discount'
 
@@ -83,9 +79,7 @@ export interface QuoteItemInput {
   metadata?: QuoteItemMetadata
 }
 
-// ------------------------------------------------------------------
 // Quote
-// ------------------------------------------------------------------
 
 export interface Quote {
   id: string
@@ -111,9 +105,7 @@ export interface QuoteCreateInput {
   notes?: string | null
 }
 
-// ------------------------------------------------------------------
 // Pricing rules (table: pricing_rules)
-// ------------------------------------------------------------------
 
 export type PricingRuleKey = 'price.glass' | 'price.labor' | 'price.adas' | 'price.part' | 'tax' | 'discount'
 
@@ -128,9 +120,8 @@ export type PriceRuleValue =
   | { mode: 'markup_amount'; value: number }
   | { mode: 'fixed'; value: number }
 
-// tax: rate is a fraction (0.0825 = 8.25%). Only lines whose type is in
-// taxable_types count toward the taxable base. Including 'discount' means
-// discounts reduce the taxable base.
+// tax: rate is a fraction (0.0825 = 8.25%). Only lines whose type is in taxable_types
+// count toward the base; including 'discount' there means discounts reduce it.
 export interface TaxRuleValue {
   rate: number
   taxable_types: QuoteItemType[]
@@ -180,9 +171,7 @@ export interface PricingSnapshot {
   captured_at?: string
 }
 
-// ------------------------------------------------------------------
 // Calculator output
-// ------------------------------------------------------------------
 
 export interface CalculatedLine {
   index: number

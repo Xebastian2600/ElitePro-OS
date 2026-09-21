@@ -37,7 +37,6 @@ function toIsoOrNull(datetimeLocal: string): string | null {
 export function LeadIntakeForm({ initialCustomerId, onCreated }: LeadIntakeFormProps) {
   const { user } = useAuth()
 
-  // Step 1: customer
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)
   const [preselectLoading, setPreselectLoading] = useState(Boolean(initialCustomerId))
   const [name, setName] = useState('')
@@ -51,16 +50,13 @@ export function LeadIntakeForm({ initialCustomerId, onCreated }: LeadIntakeFormP
   const debouncedPhone = useDebouncedValue(phone, 250)
   const debouncedEmail = useDebouncedValue(email, 250)
 
-  // Step 2: vehicle
   const [vehicles, setVehicles] = useState<Vehicle[]>([])
   const [vehiclesLoading, setVehiclesLoading] = useState(false)
   const [selectedVehicleId, setSelectedVehicleId] = useState<string>('')
   const [showAddVehicle, setShowAddVehicle] = useState(false)
 
-  // Open leads warning
   const [openLeads, setOpenLeads] = useState<Awaited<ReturnType<typeof listOpenLeadsForCustomer>>>([])
 
-  // Step 3: lead
   const [source, setSource] = useState('')
   const [customSource, setCustomSource] = useState('')
   const [request, setRequest] = useState('')
@@ -204,7 +200,6 @@ export function LeadIntakeForm({ initialCustomerId, onCreated }: LeadIntakeFormP
 
   return (
     <div className="stack-lg">
-      {/* Step 1: customer */}
       <section className="stack">
         <h2 className="text-heading-sm">1. Customer</h2>
         {selectedCustomer ? (
@@ -270,7 +265,6 @@ export function LeadIntakeForm({ initialCustomerId, onCreated }: LeadIntakeFormP
         ) : null}
       </section>
 
-      {/* Step 2: vehicle */}
       {selectedCustomer ? (
         <section className="stack">
           <h2 className="text-heading-sm">2. Vehicle (optional)</h2>
@@ -316,7 +310,6 @@ export function LeadIntakeForm({ initialCustomerId, onCreated }: LeadIntakeFormP
         </section>
       ) : null}
 
-      {/* Step 3: lead */}
       {selectedCustomer ? (
         <section className="stack">
           <h2 className="text-heading-sm">3. Lead details</h2>

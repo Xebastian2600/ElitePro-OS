@@ -1,16 +1,10 @@
-// Integration boundary types.
+// Integration boundary types. Dialpad, GHL and HCP adapters aren't implemented yet —
+// this module only fixes the shape they'll conform to, so the rest of the app can be
+// built against a stable contract today. No network calls or fabricated data here.
 //
-// Dialpad (telephony), GoHighLevel/GHL (CRM/marketing) and Housecall Pro/HCP
-// are NOT implemented here — this module only fixes the shape a real
-// adapter will conform to, so the rest of the app (and the CSV/manual lead
-// importer) can be built against a stable contract today. No network calls,
-// no env reads, no fabricated data belong in this file or in registry.ts.
-//
-// Whatever produces a lead — a future adapter, the CSV importer, or a
-// manual entry form — normalizes it to InboundLeadEvent before it reaches
-// Workstream A's customers/leads tables, and every exchange with an
-// external system is recorded via logIntegrationEvent
-// (src/data/integrationEvents.ts).
+// Every lead source (future adapter, CSV importer, manual entry) normalizes to
+// InboundLeadEvent, and every exchange with an external system is recorded via
+// logIntegrationEvent (src/data/integrationEvents.ts).
 
 export type IntegrationId = 'dialpad' | 'ghl' | 'hcp'
 
@@ -20,13 +14,9 @@ export type IntegrationStatus = 'not_configured' | 'configured' | 'error'
 // to any permission, billing, or feature-flag system.
 export type IntegrationCapability = 'import_leads' | 'log_calls' | 'sync_jobs' | 'send_messages'
 
-// Minimal contract a future adapter implements. Kept small on purpose:
-// adapters register themselves (src/integrations/registry.ts), report a
-// status, and describe what they can do. Data-moving methods — e.g. a
-// future `pullEvents(): Promise<InboundLeadEvent[]>` that polls an API or
-// receives a webhook, then hands events to an importLeads-style
-// orchestrator — are deliberately not part of this interface yet. Add them
-// when a real adapter is built, not speculatively now.
+// Adapters register in src/integrations/registry.ts and report status/capabilities only.
+// Data-moving methods (e.g. a future pullEvents()) aren't part of this interface yet —
+// add them when a real adapter is built, not speculatively now.
 export interface IntegrationAdapter {
   id: IntegrationId
   name: string

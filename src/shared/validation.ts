@@ -14,9 +14,8 @@ function emptyToNull(value: string | null | undefined): string | null {
   return trimmed === '' ? null : trimmed
 }
 
-// US-default assumption: a bare 10-digit number is treated as a US number and
-// gets a +1 prefix. Anything already carrying a '+' is treated as already
-// having a country code and is passed through digit-for-digit.
+// US-default: a bare 10-digit number gets a +1 prefix. Anything already carrying a '+'
+// is treated as having a country code and passed through digit-for-digit.
 export function normalizePhone(raw: string | null | undefined): string | null {
   if (raw == null) return null
   const trimmed = raw.trim()
