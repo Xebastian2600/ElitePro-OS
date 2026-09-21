@@ -26,7 +26,10 @@ export function VinToolPanel({ open, onClose }: VinToolPanelProps) {
   useEffect(() => {
     if (!open) return
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose()
+      // A section (e.g. PhotoSection's crop selection) may already have handled
+      // its own Escape and marked it defaultPrevented — that shouldn't also close
+      // the drawer.
+      if (event.key === 'Escape' && !event.defaultPrevented) onClose()
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)

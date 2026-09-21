@@ -46,6 +46,37 @@ describe('pickBestPass', () => {
     expect(pickBestPass(passes)).toBe(passes[1])
   })
 
+  it('prefers a pass with a candidate over a higher-confidence pass with none', () => {
+    // Reproduces a real crop-scan case: the hi-res retry pass scored higher but
+    // found no 17-character run at all, while the original pass it was retrying
+    // had found one (just not a checksum-valid one) — losing that candidate
+    // entirely would be worse for the user than showing an unconfirmed one.
+    const unconfirmed = candidate('5XXG64722MG056093', false)
+    const passes: OrientationPass[] = [
+      { degrees: 90, confidence: 54, candidates: [unconfirmed] },
+      { degrees: 90, confidence: 60, candidates: [] }, // the retry pass
+    ]
+    expect(pickBestPass(passes)).toBe(passes[0])
+  })
+
+  it('never surfaces a lucky check-digit-valid run from an unreadable orientation', () => {
+    // The real 270deg false positive on kia-label-sideways.jpg, read at ~28 confidence.
+    const passes: OrientationPass[] = [
+      { degrees: 0, confidence: 25, candidates: [] },
+      { degrees: 90, confidence: 45, candidates: [] },
+      { degrees: 270, confidence: 28, candidates: [candidate('AL3VS3101K3AH0L0N', true)] },
+    ]
+    expect(pickBestPass(passes)).toBe(passes[1])
+  })
+
+  it('still falls back to the highest-confidence pass when nothing found any candidate', () => {
+    const passes: OrientationPass[] = [
+      { degrees: 0, confidence: 15, candidates: [] },
+      { degrees: 90, confidence: 30, candidates: [] },
+    ]
+    expect(pickBestPass(passes)).toBe(passes[1])
+  })
+
   it('matches the observed kia-label-sideways.jpg reading: 0deg is unreadable, 90deg finds the VIN', () => {
     const passes: OrientationPass[] = [
       { degrees: 0, confidence: 25, candidates: [] },

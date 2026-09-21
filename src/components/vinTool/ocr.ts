@@ -1,4 +1,5 @@
 import type { Worker } from 'tesseract.js'
+import { cropScaleFactor, shouldInvert } from './ocrTuning.ts'
 
 const CHAR_WHITELIST = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 -:#/.'
 
@@ -6,6 +7,21 @@ const MAX_LONG_SIDE = 2000
 const MIN_WIDTH = 1200
 
 export type Rotation = 0 | 90 | 180 | 270
+
+// 'photo' preserves the original whole-image preprocessing (scale by width,
+// layout analysis via PSM.AUTO). 'crop' is a user-drawn selection — usually one
+// text line at an unknown scale, so it gets its own scale target and a
+// single-line page segmentation mode instead.
+export type OcrMode = 'photo' | 'crop'
+
+// A drawable source plus its own pixel size — width/height come along explicitly
+// because not every CanvasImageSource (e.g. a cropped canvas) exposes natural
+// dimensions the same way an <img> does.
+export interface ImageSource {
+  source: CanvasImageSource
+  width: number
+  height: number
+}
 
 type ProgressListener = (status: string, progress: number) => void
 
@@ -25,6 +41,11 @@ async function getWorker(): Promise<Worker> {
           // correction) instead of the SINGLE_BLOCK default, which treats the whole
           // image as one uniform paragraph and merges adjacent lines on any tilt —
           // that merging was swallowing the leading characters of the VIN line.
+          // Measured PSM.SINGLE_LINE/SINGLE_BLOCK against real crops (a user's
+          // selection box usually still has a neighboring line or two inside the
+          // padded/rotated crop) and both did worse than AUTO, so crops use the
+          // same layout analysis as whole photos — only the scale/polarity step
+          // in preprocessImage is crop-specific.
           await worker.setParameters({
             tessedit_char_whitelist: CHAR_WHITELIST,
             tessedit_pageseg_mode: PSM.AUTO,
@@ -40,15 +61,14 @@ async function getWorker(): Promise<Worker> {
   return workerPromise
 }
 
-// Grayscale + resize toward tesseract's sweet spot for character resolution.
-export function preprocessImage(source: HTMLImageElement): HTMLCanvasElement {
-  const { naturalWidth: sourceWidth, naturalHeight: sourceHeight } = source
-  const longSide = Math.max(sourceWidth, sourceHeight)
+// Grayscale + resize toward tesseract's sweet spot for character resolution, then
+// (crop mode only) invert light-on-dark text to dark-on-light. Takes an
+// explicit-size source (rather than an HTMLImageElement) so the same pipeline
+// runs on a cropped selection's canvas, not just a whole decoded photo.
+export function preprocessImage(input: ImageSource, mode: OcrMode = 'photo'): HTMLCanvasElement {
+  const { source, width: sourceWidth, height: sourceHeight } = input
 
-  let scale = sourceWidth < MIN_WIDTH ? MIN_WIDTH / sourceWidth : 1
-  if (longSide * scale > MAX_LONG_SIDE) {
-    scale = MAX_LONG_SIDE / longSide
-  }
+  const scale = mode === 'crop' ? cropScaleFactor(sourceWidth, sourceHeight) : photoScaleFactor(sourceWidth, sourceHeight)
 
   const width = Math.max(1, Math.round(sourceWidth * scale))
   const height = Math.max(1, Math.round(sourceHeight * scale))
@@ -63,15 +83,44 @@ export function preprocessImage(source: HTMLImageElement): HTMLCanvasElement {
 
   const imageData = ctx.getImageData(0, 0, width, height)
   const data = imageData.data
+  let luminanceSum = 0
   for (let i = 0; i < data.length; i += 4) {
     const gray = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]
     data[i] = gray
     data[i + 1] = gray
     data[i + 2] = gray
+    luminanceSum += gray
   }
+
+  // A whole photo can legitimately be either polarity (a window sticker vs. a
+  // dark under-hood label), and we don't have a broad enough test set to trust
+  // auto-inverting it — but a crop the user just drew around a VIN is a small
+  // enough, well-isolated sample that the mean is a reliable signal.
+  if (mode === 'crop') {
+    const pixelCount = data.length / 4
+    const mean = pixelCount > 0 ? luminanceSum / pixelCount : 255
+    if (shouldInvert(mean)) {
+      for (let i = 0; i < data.length; i += 4) {
+        const inverted = 255 - data[i]
+        data[i] = inverted
+        data[i + 1] = inverted
+        data[i + 2] = inverted
+      }
+    }
+  }
+
   ctx.putImageData(imageData, 0, 0)
 
   return canvas
+}
+
+function photoScaleFactor(width: number, height: number): number {
+  const longSide = Math.max(width, height)
+  let scale = width < MIN_WIDTH ? MIN_WIDTH / width : 1
+  if (longSide * scale > MAX_LONG_SIDE) {
+    scale = MAX_LONG_SIDE / longSide
+  }
+  return scale
 }
 
 // The size a canvas would have after a multiple-of-90 rotation, without touching the DOM.

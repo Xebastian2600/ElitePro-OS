@@ -26,6 +26,12 @@ vi.mock('../../lib/supabase.ts', () => ({
   },
 }))
 
+// The crop-selection tests only exercise the UI flow (mode toggling, Escape
+// coordination), not OCR — real tesseract/canvas work is out of scope for vitest.
+vi.mock('./scanPhoto.ts', () => ({
+  scanPhotoForVin: vi.fn().mockResolvedValue([]),
+}))
+
 afterEach(() => {
   cleanup()
   vi.unstubAllGlobals()
@@ -119,5 +125,64 @@ describe('VinToolPanel', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'false')
     expect(toggle).toHaveFocus()
     expect(screen.queryByRole('heading', { name: /^vin tool$/i })).not.toBeInTheDocument()
+  })
+})
+
+describe('PhotoSection crop selection', () => {
+  function makeImageFile() {
+    return new File([new Uint8Array([137, 80, 78, 71])], 'vin.jpg', { type: 'image/jpeg' })
+  }
+
+  beforeEach(() => {
+    window.URL.createObjectURL = vi.fn(() => 'blob:mock-url')
+    window.URL.revokeObjectURL = vi.fn()
+    // jsdom doesn't implement HTMLImageElement.decode() at all, so there's no
+    // existing property for vi.spyOn to wrap — assign a resolved stub directly.
+    window.HTMLImageElement.prototype.decode = vi.fn().mockResolvedValue(undefined)
+  })
+
+  async function renderWithLoadedPhoto() {
+    const user = userEvent.setup()
+    const onClose = vi.fn()
+    const { container } = render(<VinToolPanel open onClose={onClose} />)
+    const input = container.querySelector<HTMLInputElement>('#vin-tool-photo-input')
+    if (!input) throw new Error('photo input not found')
+    await user.upload(input, makeImageFile())
+    await screen.findByRole('button', { name: /^select area$/i })
+    return { user, onClose }
+  }
+
+  it('shows Select area after a photo loads, and toggles selection mode', async () => {
+    const { user } = await renderWithLoadedPhoto()
+
+    await user.click(screen.getByRole('button', { name: /^select area$/i }))
+
+    expect(await screen.findByRole('button', { name: /^scan selection$/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^cancel$/i })).toBeInTheDocument()
+    expect(screen.getByText(/drag over the vin to select it/i)).toBeInTheDocument()
+  })
+
+  it('Cancel leaves selection mode without closing the drawer', async () => {
+    const { user, onClose } = await renderWithLoadedPhoto()
+    await user.click(screen.getByRole('button', { name: /^select area$/i }))
+    await user.click(await screen.findByRole('button', { name: /^cancel$/i }))
+
+    expect(screen.queryByRole('button', { name: /^scan selection$/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^select area$/i })).toBeInTheDocument()
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { name: /^vin tool$/i })).toBeInTheDocument()
+  })
+
+  it('Escape cancels selection without closing the drawer', async () => {
+    const { user, onClose } = await renderWithLoadedPhoto()
+    await user.click(screen.getByRole('button', { name: /^select area$/i }))
+    await screen.findByRole('button', { name: /^scan selection$/i })
+
+    await user.keyboard('{Escape}')
+
+    expect(screen.queryByRole('button', { name: /^scan selection$/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^select area$/i })).toBeInTheDocument()
+    expect(onClose).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { name: /^vin tool$/i })).toBeInTheDocument()
   })
 })
