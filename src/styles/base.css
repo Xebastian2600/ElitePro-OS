@@ -209,6 +209,20 @@ img {
   }
 }
 
+/* Command Center KPI grid: as many equal columns as fit, collapsing to 2-up
+   on tablet and 1-up on narrow phones via the minmax floor below. */
+.grid-kpi {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-md);
+}
+
+@media (max-width: 480px) {
+  .grid-kpi {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 /* Quote workspace: main column + side column (copilot/KB), stacked below desktop. */
 .quote-workspace {
   display: grid;
@@ -313,7 +327,10 @@ img {
   white-space: nowrap;
 }
 
-@media (max-width: 1023px) {
+/* Raised from 1023px so the now-longer link list (Command Center, Follow-ups,
+   Activity, Integrations added) collapses to the hamburger before it can
+   overflow nav-bar__inner at common laptop widths like 1280px. */
+@media (max-width: 1365px) {
   .nav-bar__menu-toggle {
     display: inline-flex;
     order: -1;

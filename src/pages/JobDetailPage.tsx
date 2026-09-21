@@ -20,6 +20,7 @@ import { CustomerCard } from '../components/customer/CustomerCard.tsx'
 import { VehicleCard } from '../components/vehicle/VehicleCard.tsx'
 import { JobStatusControl } from '../components/job/JobStatusControl.tsx'
 import { ActivityList } from '../components/activity/ActivityList.tsx'
+import { FollowUpPanel } from '../components/followup/FollowUpPanel.tsx'
 
 function isoToLocalInput(iso: string | null): string {
   if (!iso) return ''
@@ -125,6 +126,10 @@ export function JobDetailPage() {
 
         <Section title="Status">
           <JobStatusControl job={job} onChanged={bumpRefresh} />
+        </Section>
+
+        <Section title="Follow-ups">
+          <FollowUpPanel sourceType="job" sourceId={jobId} />
         </Section>
 
         <Section

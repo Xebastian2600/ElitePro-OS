@@ -34,6 +34,12 @@ export function HomePage() {
           <CustomerSearch />
         </Section>
 
+        <div className="row-between">
+          <Link to="/command-center" className="link-plain text-body-md">
+            Command Center →
+          </Link>
+        </div>
+
         <Section title="At a glance">
           {leadsLoading || jobsLoading ? (
             <LoadingLine />

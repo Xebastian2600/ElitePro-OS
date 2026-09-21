@@ -29,6 +29,7 @@ import { VehicleCard } from '../components/vehicle/VehicleCard.tsx'
 import { LeadStatusControl } from '../components/lead/LeadStatusControl.tsx'
 import { JobForm } from '../components/job/JobForm.tsx'
 import { ActivityList } from '../components/activity/ActivityList.tsx'
+import { FollowUpPanel } from '../components/followup/FollowUpPanel.tsx'
 import { QuoteList } from '../components/quote/QuoteList.tsx'
 import { CopilotPanel } from '../components/copilot/CopilotPanel.tsx'
 import { KbPanel } from '../components/kb/KbPanel.tsx'
@@ -161,6 +162,10 @@ export function LeadDetailPage() {
 
         <Section title="Status">
           <LeadStatusControl lead={lead} onChanged={bumpRefresh} />
+        </Section>
+
+        <Section title="Follow-ups">
+          <FollowUpPanel sourceType="lead" sourceId={leadId} />
         </Section>
 
         <Section

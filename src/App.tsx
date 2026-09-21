@@ -14,6 +14,10 @@ import { QuotesPage } from './pages/QuotesPage.tsx'
 import { QuoteNewPage } from './pages/QuoteNewPage.tsx'
 import { QuoteWorkspacePage } from './pages/QuoteWorkspacePage.tsx'
 import { PricingSettingsPage } from './pages/PricingSettingsPage.tsx'
+import { CommandCenterPage } from './pages/CommandCenterPage.tsx'
+import { FollowUpsPage } from './pages/FollowUpsPage.tsx'
+import { ActivityPage } from './pages/ActivityPage.tsx'
+import { IntegrationsPage } from './pages/IntegrationsPage.tsx'
 import { NotFoundPage } from './pages/NotFoundPage.tsx'
 import './styles/base.css'
 
@@ -48,10 +52,14 @@ function AppHeader() {
           className={`nav-bar__links${menuOpen ? ' nav-bar__links--open' : ''}`}
           aria-label="Main"
         >
+          <NavLink to="/command-center">Command Center</NavLink>
           <NavLink to="/customers">Customers</NavLink>
           <NavLink to="/leads">Leads</NavLink>
           <NavLink to="/jobs">Jobs</NavLink>
           <NavLink to="/quotes">Quotes</NavLink>
+          <NavLink to="/follow-ups">Follow-ups</NavLink>
+          <NavLink to="/activity">Activity</NavLink>
+          <NavLink to="/integrations">Integrations</NavLink>
           <NavLink to="/settings/pricing">Pricing</NavLink>
         </nav>
         <div className="nav-bar__user">
@@ -76,6 +84,10 @@ export function AppRoutes() {
           <main style={{ flex: 1 }}>
             <Routes>
               <Route path="/" element={<HomePage />} />
+              <Route path="/command-center" element={<CommandCenterPage />} />
+              <Route path="/follow-ups" element={<FollowUpsPage />} />
+              <Route path="/activity" element={<ActivityPage />} />
+              <Route path="/integrations" element={<IntegrationsPage />} />
               <Route path="/customers" element={<CustomersPage />} />
               <Route path="/customers/:id" element={<CustomerDetailPage />} />
               <Route path="/leads" element={<LeadsPage />} />

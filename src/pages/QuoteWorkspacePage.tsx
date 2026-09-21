@@ -26,6 +26,7 @@ import { StatusBadge, statusTone } from '../components/ui/StatusBadge.tsx'
 import { CustomerCard } from '../components/customer/CustomerCard.tsx'
 import { VehicleCard } from '../components/vehicle/VehicleCard.tsx'
 import { ActivityList } from '../components/activity/ActivityList.tsx'
+import { FollowUpPanel } from '../components/followup/FollowUpPanel.tsx'
 import { QuoteItemsEditor } from '../components/quote/QuoteItemsEditor.tsx'
 import { QuoteBreakdown } from '../components/quote/QuoteBreakdown.tsx'
 import { QuoteStatusControl } from '../components/quote/QuoteStatusControl.tsx'
@@ -233,6 +234,10 @@ export function QuoteWorkspacePage() {
 
             <Section title="Breakdown">
               {displayCalculation ? <QuoteBreakdown calculation={displayCalculation} /> : <LoadingLine />}
+            </Section>
+
+            <Section title="Follow-ups">
+              <FollowUpPanel sourceType="quote" sourceId={quoteId} />
             </Section>
 
             <Section title="Status">

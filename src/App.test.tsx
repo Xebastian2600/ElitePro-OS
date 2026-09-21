@@ -192,6 +192,65 @@ vi.mock('./data/pricingRules.ts', () => ({
   setPricingRule: vi.fn(async () => ({})),
 }))
 
+// Workstream C data modules — mocked here too, since LeadDetailPage /
+// JobDetailPage / QuoteWorkspacePage each now render a FollowUpPanel, and
+// CommandCenterPage / FollowUpsPage / ActivityPage / IntegrationsPage below
+// would otherwise hit the real (un-mocked) supabase client.
+const emptyMetricsFixture = {
+  range: { period: 'today' as const, start: '2024-01-01T00:00:00.000Z', end: '2024-01-02T00:00:00.000Z' },
+  leads_created: 0,
+  quotes_created: 0,
+  quotes_open: 0,
+  leads_booked: 0,
+  jobs_created: 0,
+  jobs_scheduled: 0,
+  jobs_completed: 0,
+  leads_open: 0,
+  leads_lost: 0,
+  follow_ups_overdue: 0,
+  follow_ups_due_today: 0,
+  follow_ups_open: 0,
+  conversion_rate: null,
+}
+
+vi.mock('./data/metrics.ts', () => ({
+  getCommandCenterMetrics: vi.fn(async () => emptyMetricsFixture),
+  listTodayBoard: vi.fn(async () => ({ leadsToday: [], quotesOpen: [], jobsToday: [], followUpsDue: [] })),
+}))
+
+vi.mock('./data/team.ts', () => ({
+  listTeamMembers: vi.fn(async () => []),
+}))
+
+vi.mock('./data/activityFeed.ts', () => ({
+  listActivityFeed: vi.fn(async () => []),
+}))
+
+vi.mock('./data/followUps.ts', () => ({
+  listFollowUps: vi.fn(async () => []),
+  getFollowUp: vi.fn(async () => {
+    throw new Error('not implemented in this mock')
+  }),
+  listOpenFollowUpsForSource: vi.fn(async () => []),
+  createFollowUp: vi.fn(async () => {
+    throw new Error('not implemented in this mock')
+  }),
+  updateFollowUp: vi.fn(async () => {
+    throw new Error('not implemented in this mock')
+  }),
+  cancelFollowUp: vi.fn(async () => {
+    throw new Error('not implemented in this mock')
+  }),
+  recordFollowUpOutcome: vi.fn(async () => {
+    throw new Error('not implemented in this mock')
+  }),
+}))
+
+vi.mock('./data/integrationEvents.ts', () => ({
+  listIntegrationEvents: vi.fn(async () => []),
+  logIntegrationEvent: vi.fn(async () => ({})),
+}))
+
 updateLeadStatusMock.mockResolvedValue(leadFixture)
 
 beforeEach(() => {
@@ -215,9 +274,34 @@ function renderAt(path: string) {
 }
 
 describe('routes', () => {
-  it('renders the home page', async () => {
+  it('renders the home page (Front desk) with customer search and the open leads/jobs tiles', async () => {
     renderAt('/')
     expect(await screen.findByRole('heading', { name: /front desk/i })).toBeInTheDocument()
+    expect(screen.getByLabelText(/search customers/i)).toBeInTheDocument()
+    expect(await screen.findByText(/open leads/i)).toBeInTheDocument()
+    expect(screen.getByText(/open jobs/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Command Center →' })).toBeInTheDocument()
+  })
+
+  it('renders the Command Center page', async () => {
+    renderAt('/command-center')
+    expect(await screen.findByRole('heading', { name: /command center/i })).toBeInTheDocument()
+  })
+
+  it('renders the Follow-ups page', async () => {
+    renderAt('/follow-ups')
+    expect(await screen.findByRole('heading', { name: /^follow-ups$/i })).toBeInTheDocument()
+  })
+
+  it('renders the Activity page', async () => {
+    renderAt('/activity')
+    expect(await screen.findByRole('heading', { name: /^activity$/i })).toBeInTheDocument()
+  })
+
+  it('renders the Integrations page', async () => {
+    renderAt('/integrations')
+    expect(await screen.findByRole('heading', { name: /^integrations$/i })).toBeInTheDocument()
+    expect(await screen.findByText('Dialpad')).toBeInTheDocument()
   })
 
   it('renders the customers list page', async () => {
