@@ -6,6 +6,8 @@ customers, vehicles, leads, quotes, jobs, follow-ups, the Command Center
 and the activity log. It runs in the browser (React + Vite) on a
 Supabase database (Postgres).
 
+Picture overview of what the app can do: docs/app-summary.png
+
 This file covers (Summary):
 1. What you need: Git, Node.js 22 or newer, and Docker Desktop.
 2. First-time start: clone, install, start the local database, create .env.local, run the app, open http://localhost:5173. It warns never to use the service-role key.
