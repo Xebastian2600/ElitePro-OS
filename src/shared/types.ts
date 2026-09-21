@@ -1,7 +1,7 @@
 // Shared contract types for the core CRM tables. Every workstream reads/writes
 // through these shapes — keep them in sync with supabase/migrations/20260921000000_core_crm.sql.
 
-export type EntityType = 'customer' | 'vehicle' | 'lead' | 'job'
+export type EntityType = 'customer' | 'vehicle' | 'lead' | 'job' | 'quote' | 'pricing_rule'
 
 export type AdasStatus = 'unknown' | 'required' | 'not_required'
 export type VerifiedStatus = 'unverified' | 'verified'

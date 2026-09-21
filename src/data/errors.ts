@@ -63,5 +63,8 @@ export function toDataError(pgError: PostgrestLikeError): ValidationError | Dupl
   if (pgError.code === '23514') {
     return new ValidationError({ _: pgError.message ?? 'Validation failed.' })
   }
+  if (pgError.code === '23503' && detectField(pgError) === 'quote_id') {
+    return new ValidationError({ quote_id: 'No quote exists with this ID.' })
+  }
   return new DataError(pgError.message ?? 'Unexpected database error.', pgError)
 }

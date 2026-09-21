@@ -9,6 +9,8 @@ import { createVehicle, searchVehicles, updateVehicle } from '../data/vehicles.t
 import { createLead, updateLead, updateLeadStatus } from '../data/leads.ts'
 import { createJobFromQuote, updateJob, updateJobStatus } from '../data/jobs.ts'
 import { listActivityForEntity } from '../data/activity.ts'
+import { getPricingConfig, setPricingRule } from '../data/pricingRules.ts'
+import { createQuote, saveQuote, updateQuoteStatus } from '../data/quotes.ts'
 import { DuplicateError, ValidationError } from '../data/errors.ts'
 import type { Customer, Vehicle } from '../shared/types.ts'
 
@@ -31,7 +33,7 @@ describe('core CRM flow', () => {
   let vehicle: Vehicle
   let leadId: string
   let jobId: string
-  const quoteId = crypto.randomUUID()
+  let quoteId: string
 
   it('creates a customer', async () => {
     customer = await createCustomer({
@@ -99,6 +101,23 @@ describe('core CRM flow', () => {
 
   it('rejects moving a lead to lost without a reason', async () => {
     await expect(updateLeadStatus(leadId, 'lost')).rejects.toBeInstanceOf(ValidationError)
+  })
+
+  it('creates and approves a quote for the job (Workstream B: jobs now require an approved quote)', async () => {
+    await setPricingRule('tax', { rate: 0.08, taxable_types: ['glass'] })
+    const quote = await createQuote({ customer_id: customer.id, vehicle_id: vehicle.id })
+    await saveQuote(
+      quote.id,
+      {
+        items: [{ type: 'glass', description: 'Windshield', quantity: 1, unit_cost: 100, unit_price: 250 }],
+        notes: null,
+      },
+      await getPricingConfig(),
+    )
+    await updateQuoteStatus(quote.id, 'presented')
+    const approved = await updateQuoteStatus(quote.id, 'approved')
+    expect(approved.status).toBe('approved')
+    quoteId = quote.id
   })
 
   it('creates a job from the quote', async () => {

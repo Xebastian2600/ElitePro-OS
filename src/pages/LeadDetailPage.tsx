@@ -1,8 +1,13 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { getLead, updateLead, updateLeadStatus } from '../data/leads.ts'
 import { getCustomer } from '../data/customers.ts'
 import { getVehicle } from '../data/vehicles.ts'
+import { listQuotes } from '../data/quotes.ts'
+import { getPricingConfig } from '../data/pricingRules.ts'
+import { getKbClient } from '../kb/client.ts'
+import type { KbCategory } from '../kb/types.ts'
+import type { CopilotState } from '../copilot/assess.ts'
 import type { Customer, Vehicle } from '../shared/types.ts'
 import { ValidationError } from '../data/errors.ts'
 import { useAuth } from '../lib/auth.tsx'
@@ -24,6 +29,9 @@ import { VehicleCard } from '../components/vehicle/VehicleCard.tsx'
 import { LeadStatusControl } from '../components/lead/LeadStatusControl.tsx'
 import { JobForm } from '../components/job/JobForm.tsx'
 import { ActivityList } from '../components/activity/ActivityList.tsx'
+import { QuoteList } from '../components/quote/QuoteList.tsx'
+import { CopilotPanel } from '../components/copilot/CopilotPanel.tsx'
+import { KbPanel } from '../components/kb/KbPanel.tsx'
 
 const SOURCE_OPTIONS = ['Phone', 'Web form', 'Walk-in', 'Referral', 'Insurance', 'Repeat customer', 'Other']
 
@@ -62,6 +70,11 @@ export function LeadDetailPage() {
     if (lead?.vehicle_id) getVehicle(lead.vehicle_id).then(setVehicle)
     else setVehicle(null)
   }, [lead?.vehicle_id])
+
+  const { data: quotes } = useAsync(() => listQuotes({ leadId }), [leadId, refreshKey])
+  const { data: pricing } = useAsync(() => getPricingConfig(), [refreshKey])
+  const kbAvailable = useMemo(() => getKbClient().available, [])
+  const [kbContext, setKbContext] = useState<{ query: string; categories: KbCategory[] } | undefined>(undefined)
 
   // Editable fields
   const [editing, setEditing] = useState(false)
@@ -207,6 +220,17 @@ export function LeadDetailPage() {
           )}
         </Section>
 
+        <Section
+          title="Quotes"
+          actions={
+            <Link to={`/quotes/new?lead=${leadId}`} className="btn btn-outline btn-sm">
+              New quote
+            </Link>
+          }
+        >
+          <QuoteList quotes={quotes ?? []} emptyMessage="No quotes for this lead yet." />
+        </Section>
+
         <Section title="Create job from quote">
           {lead.vehicle_id && customer ? (
             <JobForm
@@ -230,6 +254,26 @@ export function LeadDetailPage() {
               }
             />
           )}
+        </Section>
+
+        <Section title="Copilot & knowledge base">
+          <div className="grid-2">
+            <CopilotPanel
+              state={{
+                lead,
+                customer,
+                vehicle,
+                quote: null,
+                items: [],
+                calculation: null,
+                pricing: pricing ?? null,
+                hasJob: false,
+                kbAvailable,
+              } satisfies CopilotState}
+              onKbLookup={(q) => setKbContext(q)}
+            />
+            <KbPanel context={kbContext} vehicle={vehicle} />
+          </div>
         </Section>
 
         <Section title="Activity">

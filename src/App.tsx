@@ -10,6 +10,10 @@ import { LeadIntakePage } from './pages/LeadIntakePage.tsx'
 import { LeadDetailPage } from './pages/LeadDetailPage.tsx'
 import { JobsPage } from './pages/JobsPage.tsx'
 import { JobDetailPage } from './pages/JobDetailPage.tsx'
+import { QuotesPage } from './pages/QuotesPage.tsx'
+import { QuoteNewPage } from './pages/QuoteNewPage.tsx'
+import { QuoteWorkspacePage } from './pages/QuoteWorkspacePage.tsx'
+import { PricingSettingsPage } from './pages/PricingSettingsPage.tsx'
 import { NotFoundPage } from './pages/NotFoundPage.tsx'
 import './styles/base.css'
 
@@ -47,6 +51,8 @@ function AppHeader() {
           <NavLink to="/customers">Customers</NavLink>
           <NavLink to="/leads">Leads</NavLink>
           <NavLink to="/jobs">Jobs</NavLink>
+          <NavLink to="/quotes">Quotes</NavLink>
+          <NavLink to="/settings/pricing">Pricing</NavLink>
         </nav>
         <div className="nav-bar__user">
           <span className="nav-bar__user-email">{user?.email}</span>
@@ -77,6 +83,10 @@ export function AppRoutes() {
               <Route path="/leads/:id" element={<LeadDetailPage />} />
               <Route path="/jobs" element={<JobsPage />} />
               <Route path="/jobs/:id" element={<JobDetailPage />} />
+              <Route path="/quotes" element={<QuotesPage />} />
+              <Route path="/quotes/new" element={<QuoteNewPage />} />
+              <Route path="/quotes/:id" element={<QuoteWorkspacePage />} />
+              <Route path="/settings/pricing" element={<PricingSettingsPage />} />
               <Route path="*" element={<NotFoundPage />} />
             </Routes>
           </main>

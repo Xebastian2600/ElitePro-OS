@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { AppRoutes } from './App.tsx'
 import { LeadStatusControl } from './components/lead/LeadStatusControl.tsx'
 import type { Customer, JobWithRefs, LeadWithRefs, Vehicle } from './shared/types.ts'
+import type { QuoteWithRefs } from './data/quotes.ts'
+import type { PricingConfig, QuoteCalculation } from './quote/types.ts'
 
 // Shared mutable auth state, read by the mocked supabase client below.
 // Must use vi.hoisted so it exists before vi.mock factories run.
@@ -130,6 +132,66 @@ vi.mock('./data/activity.ts', () => ({
   listActivityForEntities: vi.fn(async () => []),
 }))
 
+const quoteFixture: QuoteWithRefs = {
+  id: 'quote-1',
+  lead_id: null,
+  customer_id: 'cust-1',
+  vehicle_id: 'veh-1',
+  status: 'draft',
+  subtotal: 0,
+  tax: 0,
+  total: 0,
+  notes: null,
+  lost_reason: null,
+  pricing_snapshot: {},
+  created_by: null,
+  created_at: '2024-01-01T00:00:00Z',
+  updated_at: '2024-01-01T00:00:00Z',
+  customer: { id: 'cust-1', name: 'Jane Doe', phone: '+15551234567', email: 'jane@example.com' },
+  vehicle: { id: 'veh-1', year: 2020, make: 'Honda', model: 'Accord', vin: '1HGCM82633A004352' },
+}
+
+const emptyCalculationFixture: QuoteCalculation = {
+  lines: [],
+  gross: 0,
+  discount_total: 0,
+  subtotal: 0,
+  taxable_base: 0,
+  tax_rate: null,
+  tax: 0,
+  total: 0,
+  issues: [],
+}
+
+vi.mock('./data/quotes.ts', () => ({
+  listQuotes: vi.fn(async () => []),
+  getQuote: vi.fn(async () => quoteFixture),
+  listQuoteItems: vi.fn(async () => []),
+  getQuoteWithItems: vi.fn(async () => ({ quote: quoteFixture, items: [] })),
+  createQuote: vi.fn(async () => quoteFixture),
+  saveQuote: vi.fn(async () => ({ quote: quoteFixture, items: [] })),
+  updateQuoteStatus: vi.fn(async () => quoteFixture),
+  recalculateStoredQuote: vi.fn(() => emptyCalculationFixture),
+}))
+
+const emptyPricingConfigFixture: PricingConfig = {
+  rules: {
+    'price.glass': null,
+    'price.labor': null,
+    'price.adas': null,
+    'price.part': null,
+    tax: null,
+    discount: null,
+  },
+  issues: [],
+}
+
+vi.mock('./data/pricingRules.ts', () => ({
+  listPricingRuleRows: vi.fn(async () => []),
+  getPricingConfig: vi.fn(async () => emptyPricingConfigFixture),
+  setPricingRule: vi.fn(async () => ({})),
+}))
+
 updateLeadStatusMock.mockResolvedValue(leadFixture)
 
 beforeEach(() => {
@@ -191,6 +253,21 @@ describe('routes', () => {
   it('renders the job detail page', async () => {
     renderAt('/jobs/job-1')
     expect(await screen.findAllByText(/jane doe/i)).not.toHaveLength(0)
+  })
+
+  it('renders the quotes list page', async () => {
+    renderAt('/quotes')
+    expect(await screen.findByRole('heading', { name: /^quotes$/i })).toBeInTheDocument()
+  })
+
+  it('renders the new quote page', async () => {
+    renderAt('/quotes/new')
+    expect(await screen.findByRole('heading', { name: /new quote/i })).toBeInTheDocument()
+  })
+
+  it('renders the pricing settings page', async () => {
+    renderAt('/settings/pricing')
+    expect(await screen.findByRole('heading', { name: /pricing settings/i })).toBeInTheDocument()
   })
 
   it('renders the not found page for an unknown route', async () => {

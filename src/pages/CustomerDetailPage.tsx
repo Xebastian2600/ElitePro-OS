@@ -4,6 +4,7 @@ import { getCustomer } from '../data/customers.ts'
 import { listVehiclesForCustomer } from '../data/vehicles.ts'
 import { listOpenLeadsForCustomer } from '../data/leads.ts'
 import { listJobs } from '../data/jobs.ts'
+import { listQuotes } from '../data/quotes.ts'
 import type { Vehicle } from '../shared/types.ts'
 import { useAsync } from '../components/ui/useAsync.ts'
 import { PageHeader } from '../components/ui/PageHeader.tsx'
@@ -17,6 +18,7 @@ import { VehicleList } from '../components/vehicle/VehicleList.tsx'
 import { VehicleForm } from '../components/vehicle/VehicleForm.tsx'
 import { LeadCard } from '../components/lead/LeadCard.tsx'
 import { JobCard } from '../components/job/JobCard.tsx'
+import { QuoteList } from '../components/quote/QuoteList.tsx'
 import { ActivityList } from '../components/activity/ActivityList.tsx'
 
 export function CustomerDetailPage() {
@@ -40,6 +42,7 @@ export function CustomerDetailPage() {
   )
   const { data: allJobs, loading: jobsLoading } = useAsync(() => listJobs(), [refreshKey])
   const jobsForCustomer = allJobs?.filter((job) => job.customer_id === customerId) ?? []
+  const { data: quotes, loading: quotesLoading } = useAsync(() => listQuotes({ customerId }), [customerId, refreshKey])
 
   const bumpRefresh = () => setRefreshKey((n) => n + 1)
 
@@ -155,6 +158,10 @@ export function CustomerDetailPage() {
               }
             />
           )}
+        </Section>
+
+        <Section title="Quotes">
+          {quotesLoading ? <LoadingLine /> : <QuoteList quotes={quotes ?? []} emptyMessage="No quotes for this customer yet." />}
         </Section>
 
         <Section title="Jobs">

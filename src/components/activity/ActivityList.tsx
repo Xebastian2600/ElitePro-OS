@@ -2,6 +2,7 @@ import { useAuth } from '../../lib/auth.tsx'
 import { listActivityForEntity } from '../../data/activity.ts'
 import type { Activity, EntityType } from '../../shared/types.ts'
 import { JOB_STATUSES, LEAD_STATUSES } from '../../shared/types.ts'
+import { QUOTE_STATUSES } from '../../quote/types.ts'
 import { useAsync } from '../ui/useAsync.ts'
 import { LoadingLine } from '../ui/LoadingLine.tsx'
 import { EmptyState } from '../ui/EmptyState.tsx'
@@ -15,7 +16,7 @@ export interface ActivityListProps {
 
 function statusLabel(entityType: EntityType, value: unknown): string {
   const str = typeof value === 'string' ? value : String(value)
-  const options = entityType === 'job' ? JOB_STATUSES : LEAD_STATUSES
+  const options = entityType === 'job' ? JOB_STATUSES : entityType === 'quote' ? QUOTE_STATUSES : LEAD_STATUSES
   return options.find((s) => s.value === str)?.label ?? str
 }
 
@@ -29,11 +30,35 @@ function entityLabel(entityType: EntityType): string {
       return 'Lead'
     case 'job':
       return 'Job'
+    case 'quote':
+      return 'Quote'
+    case 'pricing_rule':
+      return 'Pricing rule'
   }
 }
 
 function describe(activity: Activity): string {
   const { action, entity_type, metadata } = activity
+
+  if (action === 'quote.item_added') {
+    const description = typeof metadata.description === 'string' ? metadata.description : ''
+    return description ? `Item added: ${description}` : 'Item added'
+  }
+
+  if (action === 'quote.item_removed') {
+    const description = typeof metadata.description === 'string' ? metadata.description : ''
+    return description ? `Item removed: ${description}` : 'Item removed'
+  }
+
+  if (action === 'quote.item_updated') {
+    const changed = Array.isArray(metadata.changed) ? (metadata.changed as string[]) : []
+    return changed.length > 0 ? `Item updated: ${changed.join(', ')}` : 'Item updated'
+  }
+
+  if (action === 'pricing_rule.created') {
+    const key = typeof metadata.key === 'string' ? metadata.key : ''
+    return key ? `Pricing rule set: ${key}` : 'Pricing rule set'
+  }
 
   if (action.endsWith('.created')) {
     return `${entityLabel(entity_type)} created`

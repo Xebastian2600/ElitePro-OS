@@ -209,6 +209,20 @@ img {
   }
 }
 
+/* Quote workspace: main column + side column (copilot/KB), stacked below desktop. */
+.quote-workspace {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+@media (max-width: 1023px) {
+  .quote-workspace {
+    grid-template-columns: 1fr;
+  }
+}
+
 .page {
   padding-top: var(--space-xl);
   padding-bottom: var(--space-xxxl);
