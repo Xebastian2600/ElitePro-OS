@@ -1,11 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { findVins, type VinCandidate } from '../../vin/extract.ts'
-import { preprocessImage, recognizeText, terminateOcrWorker } from './ocr.ts'
+import type { VinCandidate } from '../../vin/extract.ts'
+import { terminateOcrWorker } from './ocr.ts'
+import { scanPhotoForVin } from './scanPhoto.ts'
 import { VinCandidateCard } from './VinCandidateCard.tsx'
-
-function formatStatus(status: string): string {
-  return status.charAt(0).toUpperCase() + status.slice(1).replace(/_/g, ' ')
-}
 
 export function PhotoSection() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -53,14 +50,13 @@ export function PhotoSection() {
     setProgress({ label: 'Preparing image…', pct: 0 })
 
     try {
-      const canvas = preprocessImage(image)
-      const text = await recognizeText(canvas, (status, prog) => {
+      const candidates = await scanPhotoForVin(image, (label, prog) => {
         if (thisRun !== runIdRef.current) return
-        setProgress({ label: formatStatus(status), pct: Math.round(prog * 100) })
+        setProgress({ label, pct: Math.round(prog * 100) })
       })
       if (thisRun !== runIdRef.current) return // superseded while OCR ran
 
-      setCandidates(findVins(text))
+      setCandidates(candidates)
     } catch (err) {
       if (thisRun !== runIdRef.current) return
       setError(err instanceof Error ? err.message : 'OCR failed.')
