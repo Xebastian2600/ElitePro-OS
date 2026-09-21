@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { BrowserRouter, Link, NavLink, Route, Routes, useLocation } from 'react-router-dom'
 import { AuthProvider, RequireAuth, useAuth } from './lib/auth.tsx'
 import { Button } from './components/ui/Button.tsx'
@@ -25,11 +25,26 @@ function AppHeader() {
   const { user, signOut } = useAuth()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const toggleRef = useRef<HTMLButtonElement>(null)
 
   // Close the mobile menu whenever the route changes.
   useEffect(() => {
     setMenuOpen(false)
   }, [location.pathname])
+
+  // Escape closes the open menu and returns focus to the toggle, so keyboard
+  // users aren't left inside a menu they can't dismiss.
+  useEffect(() => {
+    if (!menuOpen) return
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        setMenuOpen(false)
+        toggleRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [menuOpen])
 
   return (
     <header className="nav-bar">
@@ -38,6 +53,7 @@ function AppHeader() {
           ElitePro OS
         </Link>
         <button
+          ref={toggleRef}
           type="button"
           className="nav-bar__menu-toggle"
           aria-expanded={menuOpen}

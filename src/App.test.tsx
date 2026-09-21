@@ -383,6 +383,22 @@ describe('mobile navigation menu', () => {
     expect(await screen.findByRole('heading', { name: /^leads$/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /open menu/i })).toHaveAttribute('aria-expanded', 'false')
   })
+
+  it('closes on Escape and returns focus to the toggle', async () => {
+    const user = userEvent.setup()
+    renderAt('/')
+    await screen.findByRole('heading', { name: /front desk/i })
+
+    await user.click(screen.getByRole('button', { name: /open menu/i }))
+    const toggle = screen.getByRole('button', { name: /close menu/i })
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+
+    screen.getByRole('link', { name: 'Leads' }).focus()
+    await user.keyboard('{Escape}')
+
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(toggle).toHaveFocus()
+  })
 })
 
 describe('LeadStatusControl', () => {
